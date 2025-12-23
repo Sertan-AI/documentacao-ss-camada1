@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SertanAI - Contrato de Dados Camada 1</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #fcfcfc;
+            color: #1e293b;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        svg {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+
+        #modal-detalhado {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.85);
+        }
+
+        #modal-conteudo {
+            background-color: #ffffff;
+            margin: 1% auto;
+            padding: 30px;
+            width: 98%;
+            max-width: 1800px;
+            border-radius: 0.75rem;
+            max-height: 95vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+        }
+
+        #fechar-modal {
+            color: #64748b;
+            float: right;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        #fechar-modal:hover {
+            color: #ef4444;
+        }
+    </style>
+</head>
+
+<body class="p-4 md:p-8">
+
+    <div class="max-w-[1600px] mx-auto">
+        <!-- Cabeçalho -->
+        <header class="mb-6 bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+            <div class="flex flex-col md:flex-row items-center gap-6 mb-6">
+                <img src="./static/img/logo.png" alt="SertanAI Logo" class="h-20" onerror="this.style.display='none'">
+                <div>
+                    <h1 class="text-3xl font-black text-slate-900 tracking-tight">
+                        Detalhamento do Banco de Dados SertanAI (MVP - Camada 1)
+                    </h1>
+                    <p class="text-sm text-slate-500 mt-1">
+                        Autor: <a href="https://sertanai-samuel.github.io/sertanai-samuel/"
+                            class="text-blue-600 hover:underline font-semibold">Samuel Santos</a>
+                        | <a href="https://github.com/sertanai-samuel"
+                            class="text-slate-400 hover:text-slate-600 italic">github.com/sertanai-samuel</a>
+                    </p>
+                </div>
+            </div>
+
+            <div
+                class="mt-4 text-slate-700 leading-relaxed max-w-5xl border-l-4 border-blue-500 pl-6 py-2 bg-blue-50/30">
+                <p class="font-medium mb-2">Contrato de Dados (Camada 1 &rarr; Camada 2)</p>
+                <p class="text-sm">
+                    Este documento define o contrato técnico mínimo, explícita e auditável entre o <strong>Monitoramento
+                        de Campo</strong> e o <strong>Motor de IA (XAI / SHAP)</strong>.
+                    Consideramos Camada 1 todo dado coletado e armazenado para consumo posterior pela inteligência
+                    artificial.
+                </p>
+            </div>
+
+            <!-- Listas Compactas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 pt-6 border-t border-slate-100">
+                <div class="p-3 bg-emerald-50 rounded border border-emerald-100">
+                    <h2 class="text-xs font-bold text-emerald-800 uppercase mb-2">Tabelas de Catálogo (Dicionários
+                        Técnicos)</h2>
+                    <p class="text-[11px] text-emerald-700 font-mono">cultivar, pragas, plantas_daninhas, doencas_soja,
+                        deficiencias_nutricionais_soja, estagios_soja.</p>
+                </div>
+                <div class="p-3 bg-blue-50 rounded border border-blue-100">
+                    <h2 class="text-xs font-bold text-blue-800 uppercase mb-2">Tabelas Utilitárias (Operações de Campo)
+                    </h2>
+                    <p class="text-[11px] text-blue-700 font-mono">cliente, diagnostico, monitor_sessao, monitor_ponto,
+                        monitor_rota, monitor_zona, monitor_obs_...</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Gráfico Simplificado (Apenas Relacionamentos Reais) -->
+        <div class="bg-white border rounded-xl shadow-lg p-6 overflow-x-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-slate-800">Arquitetura de Relacionamentos (Chaves Estrangeiras)</h2>
+                <button id="btn-detalhado"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-lg shadow transition transform hover:scale-105 flex items-center gap-2 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                    </svg>
+                    Ver Detalhamento Total (Página Inteira)
+                </button>
+            </div>
+
+            <div class="mermaid">
+                erDiagram
+                cliente ||--o{ diagnostico : "cliente_id"
+                cultivar ||--o{ diagnostico : "id_cultivar"
+                cultivar ||--o{ diagnostico : "id_cultivar_anterior"
+                pragas ||--o{ diagnostico : "id_praga"
+                plantas_daninhas ||--o{ diagnostico : "id_planta_daninha"
+                doencas_soja ||--o{ diagnostico : "id_doenca_soja"
+                deficiencias_nutricionais_soja ||--o{ diagnostico : "id_deficiencia_soja"
+
+                estagios_soja ||--o{ monitor_sessao : "estagio_id"
+                monitor_sessao ||--o{ monitor_ponto : "sessao_id"
+                monitor_sessao ||--o{ monitor_rota : "sessao_id"
+                monitor_sessao ||--o{ monitor_zona : "sessao_id"
+
+                monitor_ponto ||--o{ monitor_obs_praga : "ponto_id"
+                monitor_ponto ||--o{ monitor_obs_daninha : "ponto_id"
+                monitor_ponto ||--o{ monitor_obs_doenca : "ponto_id"
+                monitor_ponto ||--o{ monitor_obs_deficiencia : "ponto_id"
+
+                pragas ||--o{ monitor_obs_praga : "praga_id"
+                plantas_daninhas ||--o{ monitor_obs_daninha : "daninha_id"
+                doencas_soja ||--o{ monitor_obs_doenca : "doenca_id"
+                deficiencias_nutricionais_soja ||--o{ monitor_obs_deficiencia : "deficiencia_id"
+            </div>
+        </div>
+
+        <footer class="mt-8 text-slate-400 text-[10px] uppercase text-center border-t pt-6 tracking-widest">
+            SertanAI Technical Audit - Database Schema Contract v1.0 - 2025
+        </footer>
+    </div>
+
+    <!-- Modal para Detalhamento Máximo -->
+    <div id="modal-detalhado">
+        <div id="modal-conteudo">
+            <span id="fechar-modal">&times;</span>
+            <div class="mb-8">
+                <h2 class="text-2xl font-black text-slate-900 uppercase">Esquema Técnico detalhado</h2>
+                <p class="text-slate-500 text-sm italic mt-1">Revisão completa baseada no banco de dados
+                    sertanai.formulario</p>
+            </div>
+
+            <template id="mermaid-full-src">
+erDiagram
+%% RELACIONAMENTOS REAIS
+cliente ||--o{ diagnostico : "cliente_id"
+cultivar ||--o{ diagnostico : "id_cultivar"
+cultivar ||--o{ diagnostico : "id_cultivar_anterior"
+pragas ||--o{ diagnostico : "id_praga"
+plantas_daninhas ||--o{ diagnostico : "id_planta_daninha"
+doencas_soja ||--o{ diagnostico : "id_doenca_soja"
+deficiencias_nutricionais_soja ||--o{ diagnostico : "id_deficiencia_soja"
+
+estagios_soja ||--o{ monitor_sessao : "estagio_id"
+monitor_sessao ||--o{ monitor_ponto : "sessao_id"
+monitor_sessao ||--o{ monitor_rota : "sessao_id"
+monitor_sessao ||--o{ monitor_zona : "sessao_id"
+
+monitor_ponto ||--o{ monitor_obs_praga : "ponto_id"
+monitor_ponto ||--o{ monitor_obs_daninha : "ponto_id"
+monitor_ponto ||--o{ monitor_obs_doenca : "ponto_id"
+monitor_ponto ||--o{ monitor_obs_deficiencia : "ponto_id"
+
+pragas ||--o{ monitor_obs_praga : "praga_id"
+plantas_daninhas ||--o{ monitor_obs_daninha : "daninha_id"
+doencas_soja ||--o{ monitor_obs_doenca : "doenca_id"
+deficiencias_nutricionais_soja ||--o{ monitor_obs_deficiencia : "deficiencia_id"
+
+
+%% ESTRUTURAS TÉCNICAS
+cliente {
+int id
+string nome
+string cpf_cnpj
+string usuario
+}
+
+diagnostico {
+int id
+int cliente_id
+string nome_talhao
+string geom_data
+int id_praga
+int id_cultivar
+int id_planta_daninha
+int id_deficiencia_soja
+int id_doenca_soja
+string status
+string started_at
+string finished_at
+int progress
+int current_step
+int total_steps
+boolean correcao_solo_realizada
+}
+
+cultivar {
+int id
+string cultura
+string nome
+string grupo_maturidade
+float rendimento_ha
+float proteina_percent
+float oleo_percent
+float altura_media_cm
+int dias_floracao
+}
+
+pragas {
+int id
+string nome_comum
+string nome_cientifico
+string cultura
+string parte_afetada
+string estadio_danoso
+string tipo_praga
+string imagens
+}
+
+plantas_daninhas {
+int id
+string nome_cientifico
+string nome_popular
+string familia
+string descricao
+string ciclo
+string habitat
+int altura_maxima_cm
+boolean possui_raiz_pivotante
+string tolerancia_herbicida
+}
+
+doencas_soja {
+int id
+string nome_popular
+string agente_causador
+string tipo_patogeno
+string estagio_critico
+string sintomas
+}
+
+deficiencias_nutricionais_soja {
+int id
+string nutriente
+string sintomas
+string localizacao
+string tipo_clorose
+boolean necrose
+boolean enrugamento
+boolean superbrotamento
+float extracao_kg
+float exportacao_kg
+string referencia
+}
+
+estagios_soja {
+int id
+string simbolo
+string denominacao
+string descricao
+}
+
+monitor_sessao {
+int id
+int talhao_id
+string periodo_ini
+string periodo_fim
+float total_dist_km
+string status
+int estagio_id
+}
+
+monitor_ponto {
+int id
+int sessao_id
+int pt_seq
+string geom_point
+boolean zona_critica
+string notas
+}
+
+monitor_rota {
+int sessao_id
+string geom_line
+}
+
+monitor_zona {
+int id
+int sessao_id
+int categoria_classe
+string geom_poly
+float area_ha
+}
+
+monitor_obs_praga {
+int id
+int ponto_id
+int praga_id
+string severidade
+string estagio
+string foto_path
+string observed_at
+}
+
+monitor_obs_daninha {
+int id
+int ponto_id
+int daninha_id
+string severidade
+string estagio
+string foto_path
+string observed_at
+}
+
+monitor_obs_doenca {
+int id
+int ponto_id
+int doenca_id
+string severidade
+string estagio
+string foto_path
+string observed_at
+}
+
+monitor_obs_deficiencia {
+int id
+int ponto_id
+int deficiencia_id
+string severidade
+string estagio
+string foto_path
+string observed_at
+}
+            </template>
+
+            <!-- IMPORTANTE: SEM class="mermaid" NA CARGA -->
+            <div id="mermaid-full"></div>
+
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'neutral',
+            er: { useMaxWidth: true, layoutDirection: 'TB' }
+        });
+
+        const modal = document.getElementById("modal-detalhado");
+        const btn = document.getElementById("btn-detalhado");
+        const span = document.getElementById("fechar-modal");
+
+        function renderMermaidDetalhadoNoModal() {
+            const container = document.getElementById("mermaid-full");
+            const tpl = document.getElementById("mermaid-full-src");
+
+            // 1) Garante que o container NÃO está "processado" e NÃO carrega SVG antigo
+            container.innerHTML = "";
+            container.removeAttribute("data-processed");
+
+            // 2) Injeta o texto CRU do diagrama (isso é o que o Mermaid precisa parsear)
+            const raw = (tpl.innerHTML || "").trim();
+            container.textContent = raw;
+
+            // 3) Só agora adiciona a classe mermaid (para o Mermaid tratar como nó de diagrama)
+            //    (a classe NÃO existia na carga, então o Mermaid não processou esse nó antes)
+            container.className = "mermaid";
+
+            // 4) Renderiza somente este nó
+            mermaid.run({ nodes: [container] });
+        }
+
+        btn.onclick = function () {
+            modal.style.display = "block";
+            // Renderiza o diagrama detalhado SOMENTE ao abrir o modal (sem reparse de SVG)
+            renderMermaidDetalhadoNoModal();
+        }
+
+        span.onclick = function () { modal.style.display = "none"; }
+        window.onclick = function (event) { if (event.target == modal) { modal.style.display = "none"; } }
+    </script>
+</body>
+
+</html>
+```

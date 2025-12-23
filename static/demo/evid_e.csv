@@ -1,0 +1,5 @@
+"schema_origem";"tabela_obs";"fk_nome";"colunas_obs";"schema_destino";"tabela_ponto";"colunas_ponto";"fk_validada_catalogo";"definicao"
+formulario;monitor_obs_daninha;monitor_obs_daninha_ponto_id_fkey;{ponto_id};formulario;monitor_ponto;{id};true;FOREIGN KEY (ponto_id) REFERENCES monitor_ponto(id) ON DELETE CASCADE
+formulario;monitor_obs_deficiencia;monitor_obs_deficiencia_ponto_id_fkey;{ponto_id};formulario;monitor_ponto;{id};true;FOREIGN KEY (ponto_id) REFERENCES monitor_ponto(id) ON DELETE CASCADE
+formulario;monitor_obs_doenca;monitor_obs_doenca_ponto_id_fkey;{ponto_id};formulario;monitor_ponto;{id};true;FOREIGN KEY (ponto_id) REFERENCES monitor_ponto(id) ON DELETE CASCADE
+formulario;monitor_obs_praga;monitor_obs_praga_ponto_id_fkey;{ponto_id};formulario;monitor_ponto;{id};true;FOREIGN KEY (ponto_id) REFERENCES monitor_ponto(id) ON DELETE CASCADE
