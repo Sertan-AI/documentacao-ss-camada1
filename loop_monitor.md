@@ -261,8 +261,8 @@ erDiagram
 
   DOENCAS_SOJA {
     int id
-    text "Nome Popular"
-    text "Tipo de Patógeno"
+    text nome_popular
+    text tipo_de_patogeno
   }
 
   MONITOR_PONTO {
