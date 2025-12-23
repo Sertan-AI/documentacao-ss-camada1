@@ -159,10 +159,6 @@ A Camada 1 garante que:
 > [!IMPORTANT]
 > A Camada 2 **assume esta geometria como verdade espacial**.
 
-<div align="center">
-
-![Visualização da Geometria](demo/geometria_visualizacao.png)
-
 *Exemplo de geometria de zona crítica renderizada no sistema*
 
 </div>
@@ -415,8 +411,10 @@ Este contrato:
 
 ### 🌐 Esquema do geral do banco de dados
 
-**Acesse a documentação completa e demonstrações:**  
+**Acesse a documentação completa do banco e demonstrações:**  
 🔗 [https://sertan-ai.github.io/documentacao-ss-camada1](https://sertan-ai.github.io/documentacao-ss-camada1)
+
+**Acesse o Loop MVP detalhado:** [loop_monitor.md](loop_monitor.md)
 
 </div>
 
