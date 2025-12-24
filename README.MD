@@ -36,9 +36,7 @@ Ele responde de forma **inequívoca**:
 
 A Camada 2 **pode rodar apenas quando**:
 
-- ☑️ O usuário **finaliza a sessão de monitoramento**
-- ☑️ O usuário **edita uma sessão existente**
-- ☑️ O usuário **insere uma nova sessão**
+- ☑️ **finalização a sessão de monitoramento**
 
 > [!NOTE]
 > Nenhum outro evento é válido no V0.
@@ -87,9 +85,12 @@ monitor_sessao.status = 'concluida'
 </tr>
 <tr>
 <td><strong>Origem da geometria</strong></td>
-<td>Áreas definidas como zonas críticas com base no NDVI, para o período especificado, utilizando imagens Sentinel-2</td>
+<td> Geometria gerada internamente pela Camada 1 a partir do processamento de imagens de sensoriamento remoto, resultando em zonas críticas consolidadas para o período analisado</td>
 </tr>
 </table>
+
+> [!NOTE]
+> A origem da geometria refere-se exclusivamente ao processo interno de geração da Camada 1. Métricas como NDVI podem ser utilizadas internamente durante esse processo, porém não são persistidas no banco de dados nem fazem parte do contrato de dados no V0.
 
 #### 📊 Validação do SRID no Banco de Dados
 
@@ -241,7 +242,7 @@ erDiagram
 ### Estado Atual (V0)
 
 > [!WARNING]
-> **NÃO fazem parte do contrato da Camada 1:**
+> **NÃO fazem parte do contrato da Camada 1 no V0:**
 > - NDVI
 > - Chuva
 > - Solo
@@ -250,9 +251,7 @@ erDiagram
 📌 Estas variáveis **não são persistidas nem garantidas** pela Camada 1 no MVP.
 
 > [!NOTE]
-> A Camada 1 gera gráficos dessas variáveis para o relatório descritivo, mas o cálculo de estatísticas usadas no modelo (média, mediana, moda) é realizado diretamente na Camada 2 para maior eficiência, em vez de armazenar no banco.
-
-👉 Elas podem ser **derivadas posteriormente pela Camada 2**, a partir da geometria, via serviços externos (ex.: Google Earth Engine).
+> A Camada 1 pode consumir dados externos (ex.: NDVI) exclusivamente para fins de visualização descritiva, sem persistência, sem garantia e fora do contrato de dados.
 
 ---
 
@@ -330,7 +329,7 @@ erDiagram
 *Cria mapas para o relatório, mas sem análise inferencial*
 
 ❌ **NDVI / clima / solo**  
-*Cria mapas para o relatório*
+*NDVI / clima / solo não são dados contratados da Camada 1. Qualquer visualização baseada nessas variáveis é derivada externamente, efêmera e não integra o contrato de dados do MVP.*
 
 </td>
 <td style="padding: 10px;">
@@ -422,7 +421,8 @@ Este contrato:
 
 ### 🔒 Limites Confirmados
 
-- [X] NDVI não é persistido pela Camada 1
+- [X] NDVI não faz parte do contrato de dados da Camada 1.
+      *A Camada 1 não persiste, valida nem garante disponibilidade de NDVI.*
 - [X] Precipitação não é persistida pela Camada 1
 - [X] Fotos não são interpretadas no MVP
 - [X] Nenhuma inferência ocorre antes do trigger oficial
