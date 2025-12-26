@@ -30,7 +30,17 @@ Ele responde de forma **inequívoca**:
 
 ---
 
-## 📥 Evento de Disparo (Trigger)
+## � Documentos Relacionados
+
+Este contrato inclui os seguintes documentos anexos que detalham aspectos específicos do sistema:
+
+- **[docs_monitoramento_relacionamento.md](docs_monitoramento_relacionamento.md)**: Documentação completa do modelo de dados e relacionamentos do sistema de monitoramento, incluindo o diagrama ER detalhado, descrições de todas as tabelas, a Query Mãe (consulta SQL completa para recuperar todos os dados de uma sessão) e exemplos de uso práticos.
+
+- **[docs_talhao_id.md](docs_talhao_id.md)**: Documentação detalhada do campo `talhao_id`, incluindo sua definição, relacionamentos, onde é usado no código, fluxo de dados, estratégia de fallback e exemplos práticos de API.
+
+---
+
+## �📥 Evento de Disparo (Trigger)
 
 ### 🧠 Trigger Lógico (Produto)
 
@@ -67,6 +77,18 @@ monitor_sessao.status = 'concluida'
 ---
 
 ## 🗺️ Estrutura de Dados Contratada
+
+### 0️⃣ Identificador do Talhão (`talhao_id`)
+
+**Definição de talhao_id (V0)**  
+No MVP (V0), `talhao_id` referencia `formulario.diagnostico.id`, representando um talhão lógico associado a uma geometria válida (`geom`).  
+Este identificador é estável ao longo do tempo e serve como âncora para histórico, sessões de monitoramento e agrupamento por área.  
+O `talhao_id` não representa uma sessão, mas sim a entidade lógica de área monitorada.
+
+> [!NOTE]
+> Para detalhes completos sobre `talhao_id`, consulte [docs_talhao_id.md](docs_talhao_id.md).
+
+---
 
 ### 1️⃣ Geometria da Sessão
 
@@ -183,7 +205,7 @@ Cada observação possui:
 | `sessao_id` | int | ✅ | FK para `monitor_sessao` |
 | `tipo` | enum | ✅ | `praga` \| `doença` \| `daninha` \| `deficiência` |
 | `severidade` | enum | ✅ | `baixa` \| `moderada` \| `alta` |
-| `timestamp` | timestamp | ✅ | Momento da observação |
+| `observed_at` | timestamp | ✅ | Momento da observação |
 | `nota` | text | ❌ | Texto livre |
 | `foto` | text/path | ❌ | Evidência bruta |
 
@@ -191,17 +213,37 @@ Cada observação possui:
 > **Fotos não são interpretadas no MVP.**  
 > São armazenadas apenas como evidência, sem uso analítico.
 
+> [!IMPORTANT]
+> **Registros Temporais no MVP (V0)**  
+> Todos os registros temporais do MVP (V0) são gerados no servidor, nunca pelo cliente.  
+> O timezone adotado é UTC, garantindo consistência temporal entre sessões e ambientes.  
+> Os seguintes campos possuem semântica distinta:  
+> ● `observed_at`: momento em que o técnico realizou a observação em campo  
+> ● `created_at`: momento em que o sistema persistiu o registro no banco  
+> Dentro de uma mesma sessão, os timestamps são monotonicamente não regressivos, garantindo ordenação temporal consistente.
+
 ---
 
 ### 🔢 Cardinalidade (Contrato Explícito)
 
 ```mermaid
 erDiagram
+    DIAGNOSTICOS ||--o{ MONITOR_SESSAO : "talhao_id"
     MONITOR_SESSAO ||--o{ MONITOR_PONTO : "possui N pontos"
     MONITOR_PONTO ||--o{ OBSERVACAO : "possui 0..N observações"
     
+    DIAGNOSTICOS {
+        int id PK
+        string nome_talhao
+        geometry geom
+        string propriedade
+        int cliente_id
+        int usuario_id
+    }
+    
     MONITOR_SESSAO {
-        int id
+        int id PK
+        int talhao_id FK
         string status
         geometry geom
     }
@@ -217,11 +259,14 @@ erDiagram
         int ponto_id
         enum tipo
         enum severidade
-        timestamp timestamp
+        timestamp observed_at
     }
 ```
 
 **Regras de cardinalidade:**
+
+- Um diagnóstico (talhão) pode ter **N sessões** de monitoramento  
+  *Cada sessão representa um período específico de monitoramento para o mesmo talhão*
 
 - Uma sessão possui **N pontos**  
   *A quantidade de pontos depende do tamanho da zona crítica detectada para o período analisado*
@@ -291,6 +336,59 @@ erDiagram
 
 > [!CAUTION]
 > Payload via API / função **não faz parte deste contrato**.
+
+---
+
+## 🔍 Query Mãe - Acesso Completo aos Dados de uma Sessão de Monitoramento
+
+A **Query Mãe** é a consulta SQL completa e otimizada que recupera **todos os dados de uma sessão de monitoramento** em uma única execução, incluindo metadados, pontos, observações, rota e zonas críticas.
+
+### Estrutura da Query
+
+```sql
+-- Query Mãe: Sessão de Monitoramento Completa
+-- Parâmetros: :sessao_id (INTEGER)
+-- Retorna JSON completo com todos os dados relacionados
+
+WITH sessao_meta AS (
+    -- Metadados da sessão com informações do talhão
+    SELECT s.id AS sessao_id, s.talhao_id, d.nome_talhao AS talhao_nome,
+           s.periodo_ini, s.periodo_fim, s.status, s.created_at,
+           ST_AsGeoJSON(d.geom) AS talhao_geojson
+    FROM formulario.monitor_sessao s
+    LEFT JOIN formulario.diagnostico d ON d.id = s.talhao_id
+    WHERE s.id = :sessao_id
+),
+-- [Outras CTEs: sessao_pontos, sessao_observacoes, sessao_rota, sessao_zonas, estatisticas_gerais]
+
+SELECT 
+    json_build_object('sessao_id', sm.sessao_id, 'talhao_nome', sm.talhao_nome, ...) AS metadados,
+    row_to_json(eg.*) AS estatisticas,
+    (SELECT json_agg(row_to_json(sp.*)) FROM sessao_pontos sp) AS pontos,
+    (SELECT json_agg(row_to_json(so.*)) FROM sessao_observacoes so) AS observacoes,
+    (SELECT row_to_json(sr.*) FROM sessao_rota sr) AS rota,
+    (SELECT json_agg(row_to_json(sz.*)) FROM sessao_zonas sz) AS zonas
+FROM sessao_meta sm
+CROSS JOIN estatisticas_gerais eg;
+```
+
+### Resultado
+
+Retorna **1 linha JSON** com toda a sessão estruturada:
+
+```json
+{
+  "metadados": {"sessao_id": 456, "talhao_nome": "Talhão A", ...},
+  "estatisticas": {"total_pontos": 12, "total_observacoes": 15, ...},
+  "pontos": [...],
+  "observacoes": [...],
+  "rota": {...},
+  "zonas": [...]
+}
+```
+
+> [!NOTE]
+> Para a **implementação completa, exemplos de uso e documentação detalhada** da Query Mãe, consulte [docs_monitoramento_relacionamento.md](docs_monitoramento_relacionamento.md).
 
 ---
 
@@ -383,7 +481,7 @@ Este contrato:
 - [X] Campos obrigatórios são garantidos:
 	[X] tipo: garantido via UX (formulário só abre após seleção de categoria)
 	[X] severidade: campo required no HTML + validação backend (Evidencia D)
-	[X] timestamp: gerado automaticamente com now() 
+	[X] observed_at: gerado automaticamente com now() 
 - [X] Cardinalidade ponto ↔ observação respeitada no banco (Evidencia E (csv e print)
 - [X] Sessão pode ser recuperada integralmente após finalização (Evidencia F/G)
 - [X] Exportação/consulta da geometria funciona (SQL / GeoJSON / SHP) (Evidencia H/I)
@@ -408,12 +506,20 @@ Este contrato:
 
 <div align="center">
 
-### 🌐 Esquema do geral do banco de dados
+### 🌐 Documentação Interativa no GitHub Pages
 
 **Acesse a documentação completa do banco e demonstrações:**  
 🔗 [https://sertan-ai.github.io/documentacao-ss-camada1](https://sertan-ai.github.io/documentacao-ss-camada1)
 
 **Acesse o Loop MVP detalhado:** [loop_monitor.md](loop_monitor.md)
+
+#### 📱 Mockups da Documentação
+
+| Página Inicial | Esquema Técnico Detalhado |
+|:--------------:|:-------------------------:|
+| <a href="static/demo/mockup_home.png" target="_blank"><img src="static/demo/mockup_home.png" alt="Página Inicial" style="width: 300px; height: auto;"></a> | <a href="static/demo/mockup_schema.png" target="_blank"><img src="static/demo/mockup_schema.png" alt="Esquema Técnico" style="width: 300px; height: auto;"></a> |
+
+*Capturas de tela dos mockups da documentação interativa no GitHub Pages.*
 
 </div>
 
