@@ -639,4 +639,4 @@ WHERE s.id = :sessao_id
 
 ---
 
-**Última atualização**: 2024-12-25
+**Última atualização**: 25-12-2025

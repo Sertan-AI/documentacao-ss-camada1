@@ -21,9 +21,9 @@ Um **talhão** é uma parcela ou lote de terra cultivável dentro de uma proprie
 
 ### Tipo de Dado
 
-- **Tipo**: `INTEGER`
+- **Tipo**: `BIGINT` (int8)
 - **Obrigatório**: ✅ Sim (NOT NULL)
-- **Chave Estrangeira**: Referencia `diagnosticos.id` (ou `talhoes.id` quando disponível)
+- **Chave Estrangeira**: Referencia `formulario.diagnostico.id`
 
 ---
 
@@ -33,14 +33,13 @@ Um **talhão** é uma parcela ou lote de terra cultivável dentro de uma proprie
 
 ```mermaid
 erDiagram
-    DIAGNOSTICOS ||--o{ MONITOR_SESSAO : "talhao_id"
-    TALHOES ||--o{ MONITOR_SESSAO : "talhao_id (opcional)"
+    DIAGNOSTICO ||--o{ MONITOR_SESSAO : "talhao_id"
     MONITOR_SESSAO ||--o{ MONITOR_PONTO : "sessao_id"
     MONITOR_SESSAO ||--o{ MONITOR_ROTA : "sessao_id"
     MONITOR_SESSAO ||--o{ MONITOR_ZONA : "sessao_id"
     
-    DIAGNOSTICOS {
-        int id PK
+    DIAGNOSTICO {
+        bigint id PK
         string nome_talhao
         geometry geom
         string propriedade
@@ -48,31 +47,26 @@ erDiagram
         int usuario_id
     }
     
-    TALHOES {
-        int id PK
-        string nome
-        geometry geom
-    }
-    
     MONITOR_SESSAO {
-        int id PK
-        int talhao_id FK
+        bigint id PK
+        bigint talhao_id FK
         date periodo_ini
         date periodo_fim
         string imagem_ref
-        float total_dist_km
+        numeric total_dist_km
         string status
         int estagio_id
+        timestamp created_at
     }
 ```
 
 ### Relacionamento Principal
 
 ```sql
-monitor_sessao.talhao_id → diagnosticos.id
+formulario.monitor_sessao.talhao_id → formulario.diagnostico.id
 ```
 
-> **💡 Nota Importante**: O `talhao_id` **NÃO** referencia uma tabela separada `talhoes` por padrão. Ele aponta diretamente para o `id` da tabela `diagnosticos`, que contém os dados do talhão incluindo sua geometria espacial (polígono).
+> **💡 Nota Importante**: O `talhao_id` referencia **diretamente** `formulario.diagnostico.id`. Cada registro na tabela `diagnostico` representa um talhão com sua geometria espacial (polígono) e metadados associados.
 
 ---
 
@@ -83,16 +77,16 @@ monitor_sessao.talhao_id → diagnosticos.id
 Coluna que armazena o ID do talhão sendo monitorado:
 
 ```sql
-CREATE TABLE monitor_sessao (
-    id SERIAL PRIMARY KEY,
-    talhao_id INTEGER NOT NULL,       -- ← Campo principal
+CREATE TABLE formulario.monitor_sessao (
+    id BIGSERIAL PRIMARY KEY,
+    talhao_id BIGINT NOT NULL,        -- ← Campo principal: FK para diagnostico.id
     periodo_ini DATE NOT NULL,
     periodo_fim DATE NOT NULL,
-    imagem_ref VARCHAR(255),
-    total_dist_km NUMERIC(10, 2),
-    status VARCHAR(50) DEFAULT 'aberta',
+    imagem_ref TEXT,
+    total_dist_km NUMERIC(8, 2),
+    status TEXT NOT NULL DEFAULT 'aberta',
     estagio_id INTEGER,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 ```
 
@@ -106,7 +100,9 @@ Endpoint que retorna os talhões disponíveis para o usuário:
 @bp.get("/api/talhoes")
 @require_login
 def listar_talhoes():
-    # Busca da tabela diagnosticos
+    # Busca da tabela diagnostico
+    t_diag = diagnosticos_table()  # Retorna "formulario.diagnostico"
+    
     base_sql = f"""
         SELECT DISTINCT ON (nome_talhao)
                id AS diag_id,           -- ← Este ID será o talhao_id
@@ -247,21 +243,21 @@ sequenceDiagram
     
     U->>F: Seleciona talhão no dropdown
     F->>API: GET /api/talhoes
-    API->>DB: SELECT id, nome_talhao FROM diagnosticos
+    API->>DB: SELECT id, nome_talhao FROM formulario.diagnostico
     DB-->>API: [{id: 123, nome: "Talhão A"}]
     API-->>F: Lista de talhões
     
     U->>F: Preenche período e clica "Criar Sessão"
     F->>API: POST /api/sessao {talhao_id: 123, periodo_ini, periodo_fim}
     
-    API->>DB: SELECT geom FROM diagnosticos WHERE id = 123
+    API->>DB: SELECT geom FROM formulario.diagnostico WHERE id = 123
     DB-->>API: Geometria (polígono) do talhão
     
     API->>API: Gera pontos amostrais e rota
     
-    API->>DB: INSERT INTO monitor_sessao (talhao_id, ...)
-    API->>DB: INSERT INTO monitor_ponto (sessao_id, ...)
-    API->>DB: INSERT INTO monitor_rota (sessao_id, ...)
+    API->>DB: INSERT INTO formulario.monitor_sessao (talhao_id, ...)
+    API->>DB: INSERT INTO formulario.monitor_ponto (sessao_id, ...)
+    API->>DB: INSERT INTO formulario.monitor_rota (sessao_id, ...)
     
     DB-->>API: Sessão criada (id: 456)
     API-->>F: Dados da sessão + pontos + rota
@@ -278,12 +274,12 @@ sequenceDiagram
     
     F->>API: GET /api/sessao/456
     
-    API->>DB: SELECT * FROM monitor_sessao WHERE id = 456
+    API->>DB: SELECT * FROM formulario.monitor_sessao WHERE id = 456
     Note over DB: Retorna: talhao_id = 123
     
-    API->>DB: SELECT nome_talhao FROM diagnosticos WHERE id = 123
-    API->>DB: SELECT * FROM monitor_ponto WHERE sessao_id = 456
-    API->>DB: SELECT * FROM monitor_rota WHERE sessao_id = 456
+    API->>DB: SELECT nome_talhao FROM formulario.diagnostico WHERE id = 123
+    API->>DB: SELECT * FROM formulario.monitor_ponto WHERE sessao_id = 456
+    API->>DB: SELECT * FROM formulario.monitor_rota WHERE sessao_id = 456
     
     DB-->>API: Dados completos da sessão
     API-->>F: JSON com sessão, pontos, rota, talhão
@@ -291,48 +287,42 @@ sequenceDiagram
 
 ---
 
-## Estratégia de Fallback
+## Busca de Dados do Talhão
 
-O sistema usa uma **estratégia dupla** para buscar informações do talhão:
-
-### 1. Tentativa Primária: Tabela `talhoes` (opcional)
+O sistema busca informações do talhão diretamente da tabela `diagnostico`:
 
 ```python
-if talhoes_exists:
-    talhao = conn.execute(text(f"""
-        SELECT id, ST_AsText(geom) AS wkt, nome
-          FROM {t_talhoes}
-         WHERE id = :tid
-    """), {"tid": talhao_id}).mappings().first()
+# Código real de app/monitoramento/routes.py
+diag_tbl = diagnosticos_table()  # Retorna "formulario.diagnostico"
+
+talhao = conn.execute(text(f"""
+    SELECT id, ST_AsText(geom) AS wkt, nome_talhao AS nome
+      FROM {diag_tbl}
+     WHERE id = :tid
+"""), {"tid": talhao_id}).mappings().first()
+
+if not talhao or not talhao.get("wkt"):
+    return jsonify({
+        "ok": False, 
+        "error": "not_found",
+        "detail": "Geometria não encontrada para talhão/diagnóstico."
+    }), 404
 ```
 
-### 2. Fallback: Tabela `diagnosticos` (sempre presente)
-
-```python
-if not talhao:
-    talhao = conn.execute(text(f"""
-        SELECT id, ST_AsText(geom) AS wkt, nome_talhao AS nome
-          FROM {diagnosticos_table()}
-         WHERE id = :tid
-    """), {"tid": talhao_id}).mappings().first()
-```
-
-### 3. JOIN para Nome do Talhão
-
-Ao buscar metadados da sessão, faz JOIN com ambas as tabelas usando `COALESCE`:
+### Query para Metadados da Sessão
 
 ```sql
-SELECT s.id, s.talhao_id, s.periodo_ini, s.periodo_fim,
-       COALESCE(t.nome, d.nome_talhao) AS talhao_nome
-  FROM monitor_sessao s
-  LEFT JOIN talhoes t ON t.id = s.talhao_id           -- Tenta primeiro
-  LEFT JOIN diagnosticos d ON d.id = s.talhao_id      -- Fallback
- WHERE s.id = :sid
+SELECT 
+    s.id, 
+    s.talhao_id, 
+    s.periodo_ini, 
+    s.periodo_fim,
+    d.nome_talhao AS talhao_nome,
+    d.propriedade
+FROM formulario.monitor_sessao s
+LEFT JOIN formulario.diagnostico d ON d.id = s.talhao_id
+WHERE s.id = :sessao_id
 ```
-
-**Lógica**:
-- Se `talhoes.nome` existir → usa ele
-- Caso contrário → usa `diagnosticos.nome_talhao`
 
 ---
 
@@ -416,21 +406,24 @@ Buscar todas as sessões com informações do talhão:
 SELECT 
     s.id AS sessao_id,
     s.talhao_id,
-    COALESCE(t.nome, d.nome_talhao) AS talhao_nome,
+    d.nome_talhao AS talhao_nome,
     d.propriedade,
     s.periodo_ini,
     s.periodo_fim,
     s.status,
     s.total_dist_km,
     COUNT(DISTINCT p.id) AS total_pontos,
-    COUNT(DISTINCT obs.id) AS total_observacoes
-FROM monitor_sessao s
-LEFT JOIN talhoes t ON t.id = s.talhao_id
-LEFT JOIN diagnosticos d ON d.id = s.talhao_id
-LEFT JOIN monitor_ponto p ON p.sessao_id = s.id
-LEFT JOIN monitor_obs_praga obs ON obs.ponto_id = p.id
+    COUNT(DISTINCT op.id) + COUNT(DISTINCT od.id) + 
+    COUNT(DISTINCT oda.id) + COUNT(DISTINCT odf.id) AS total_observacoes
+FROM formulario.monitor_sessao s
+LEFT JOIN formulario.diagnostico d ON d.id = s.talhao_id
+LEFT JOIN formulario.monitor_ponto p ON p.sessao_id = s.id
+LEFT JOIN formulario.monitor_obs_praga op ON op.ponto_id = p.id
+LEFT JOIN formulario.monitor_obs_doenca od ON od.ponto_id = p.id
+LEFT JOIN formulario.monitor_obs_daninha oda ON oda.ponto_id = p.id
+LEFT JOIN formulario.monitor_obs_deficiencia odf ON odf.ponto_id = p.id
 WHERE s.status = 'aberta'
-GROUP BY s.id, s.talhao_id, t.nome, d.nome_talhao, d.propriedade
+GROUP BY s.id, s.talhao_id, d.nome_talhao, d.propriedade
 ORDER BY s.created_at DESC;
 ```
 
@@ -440,14 +433,14 @@ ORDER BY s.created_at DESC;
 
 ### ⚠️ Pontos de Atenção
 
-1. O `talhao_id` referencia `diagnosticos.id`, **não** uma tabela `talhoes` dedicada
-2. A geometria do talhão **deve existir** (`geom NOT NULL`) para gerar pontos/rota
-3. A estratégia de fallback garante compatibilidade se uma tabela `talhoes` for adicionada futuramente
+1. O `talhao_id` referencia **`formulario.diagnostico.id`** - não existe tabela `talhoes` separada
+2. A geometria do talhão **deve existir** e ser válida para gerar pontos/rota de monitoramento
+3. Tipo de dado é `BIGINT` (int8), não `INTEGER`
+4. Todas as tabelas de monitoramento estão no schema `formulario`
 
 ### 🔐 Segurança
 
-- Filtros por `cliente_id` e `usuario_id` garantem isolamento de dados
-- Usuários só veem talhões aos quais têm acesso.
+> **⚠️ ATENÇÃO**: A listagem de talhões (`GET /api/talhoes`) aplica filtros por `cliente_id` e `usuario_id`, mas a **criação de sessão** (`POST /api/sessao`) **não valida** se o usuário tem permissão para acessar o `talhao_id` informado. Isso representa uma potencial vulnerabilidade de segurança.
 
 ---
 
