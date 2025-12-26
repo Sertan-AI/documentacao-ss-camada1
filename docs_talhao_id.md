@@ -438,10 +438,6 @@ ORDER BY s.created_at DESC;
 3. Tipo de dado é `BIGINT` (int8), não `INTEGER`
 4. Todas as tabelas de monitoramento estão no schema `formulario`
 
-### 🔐 Segurança
-
-> **⚠️ ATENÇÃO**: A listagem de talhões (`GET /api/talhoes`) aplica filtros por `cliente_id` e `usuario_id`, mas a **criação de sessão** (`POST /api/sessao`) **não valida** se o usuário tem permissão para acessar o `talhao_id` informado. Isso representa uma potencial vulnerabilidade de segurança.
-
 ---
 
 ## Referências de Código
