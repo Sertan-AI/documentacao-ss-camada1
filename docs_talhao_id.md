@@ -39,7 +39,7 @@ erDiagram
     MONITOR_SESSAO ||--o{ MONITOR_ZONA : "sessao_id"
     
     DIAGNOSTICO {
-        bigint id PK
+        int id PK
         string nome_talhao
         geometry geom
         string propriedade
