@@ -453,4 +453,4 @@ ORDER BY s.created_at DESC;
 
 ---
 
-**Última atualização**: 2024-12-25
+**Última atualização**: 25-12-2025
