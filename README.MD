@@ -190,7 +190,7 @@ A Camada 1 garante que:
 
 | **Evidência no Banco de Dados** | **Evidência na Interface** |
 |:-------------------------------:|:--------------------------:|
-| <img src="static/demo/evid_demo_banco.png" alt="Banco de Dados" style="height: 300px; width: auto; object-fit: contain;"> | <img src="static/demo/evid_demo_interface.png" alt="Interface" style="height: 300px; width: auto; object-fit: contain;"> |
+| <img src="static/demo/evid_demo_banco.png" alt="Banco de Dados" style="height: 300px; width: auto;"> | <img src="static/demo/evid_demo_interface.png" alt="Interface" style="height: 300px; width: auto;"> |
 
 </div>
 
