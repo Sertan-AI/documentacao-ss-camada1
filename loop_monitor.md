@@ -42,7 +42,9 @@ Fluxo mínimo **contratual** do produto:
 
 1. Cadastrar o imóvel/talhão e adicionar uma geometria
 2. Criar sessão de monitoramento apontando o período a ser analisado
-3. Uma geometria de zona crítica é criada com base em índices de NDVI / pontos são distribuídos nessas zonas
+3. Uma geometria de zona crítica é criada (NDVI* é usado como processo upstream) / pontos são distribuídos nessas zonas
+
+   *NDVI = processo upstream não persistido, usado apenas para gerar as zonas
 3. Registrar observações de campo (por ponto, podendo ser uma ou mais em cada ponto. não necessariamente todos os pontos devem ser adicionados de anotações)
 4. Finalizar uma sessão = **trigger único** (não tem timeout, periodicidade ou algo assim)
 5. Persistir dados no banco (geometria, observações e dados gerais são armazenados no banco de dados para posterior uso no modelo)
@@ -79,7 +81,9 @@ Fluxo mínimo **contratual** do produto:
 - Usuário filtra talhões vinculados a propriedade selecionada
 - Usuário cria uma nova seção selecionando o período a ser analisado 
 - Sistema gera um `sessao_id`
-- Sistema gera geometrias de zonas criticas (calculado pelo ndvi no período) e vincula à sessao_id
+- Sistema gera geometrias de zonas criticas (processo upstream usa NDVI*, não persistido) e vincula à sessao_id
+
+*NDVI é consumido apenas durante geração; não é armazenado nem contratado para Camada 2
 - Sistema lança pontos distribuídos pelas zonas críticas.
 
 **Status:** ✅ Implementado ✔️
@@ -389,7 +393,9 @@ Qualquer mudança:
 **Acesse a documentação completa do banco e demonstrações:**  
 🔗 [https://sertan-ai.github.io/documentacao-ss-camada1](https://sertan-ai.github.io/documentacao-ss-camada1)
 
-**Acesse o Contrato de Dados:** [README.MD](README.MD)
+**Acesse o Contrato de Dados:** [contrato_de_dados.md](contrato_de_dados.md)
+
+**Contrato do Campo `talhao_id` (V0):** [docs_talhao_id.md](docs_talhao_id.md) ← Fonte única oficial
 
 </div>
 

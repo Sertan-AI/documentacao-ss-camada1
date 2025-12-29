@@ -1,12 +1,52 @@
 # Documentação: Campo `talhao_id`
 
+> **🔒 CONTRATO OFICIAL (V0) — Camada 1**  
+> Este documento é a **única fonte oficial** sobre o campo `talhao_id`.  
+> Todos os outros documentos devem referenciar este arquivo, sem duplicar conteúdo.
+
+---
+
+## 🔐 Contrato Semântico do V0
+
+### Definição Contratual
+
+No **V0**, `talhao_id` é o **identificador do talhão lógico** e referencia diretamente **`formulario.diagnostico.id`**.
+
+> **⚠️ IMPORTANTE**: Não existe tabela `talhoes` no banco de dados do V0.
+
+A Camada 1 **assume** que o registro em `diagnostico` possui **geometria válida** (`geom`), o que é **pré-requisito operacional** para criação de sessões de monitoramento.
+
+### O que `talhao_id` Garante ✅
+
+- **Ancoragem longitudinal por área**: Múltiplas sessões podem referenciar o mesmo `talhao_id`, criando histórico temporal
+- **Histórico consistente**: Rastreabilidade de todas as sessões de monitoramento de uma mesma área ao longo do tempo
+- **Agrupamento multi-tenant**: Segregação de dados por cliente/usuário via relacionamento com `diagnostico`
+
+### O que `talhao_id` NÃO Representa ❌
+
+- **Sessão**: Uma sessão é uma instância temporal de monitoramento (`monitor_sessao`)
+- **Instância temporal**: O `talhao_id` é atemporal; o tempo está nas sessões
+- **Entidade autônoma separada**: No V0, é apenas uma FK para `diagnostico.id`
+
+### Versionamento e Breaking Changes
+
+> **🔒 REGRA DE GOVERNANÇA**:  
+> Qualquer mudança nesta semântica constitui **breaking change** e **só pode ocorrer em V1+**, com versionamento explícito.
+
+**Exemplos de breaking changes**:
+- Criar tabela `talhoes` separada de `diagnostico`
+- Alterar o alvo da FK de `diagnostico.id` para outra tabela
+- Mudar a semântica de "área física" para "área lógica/virtual"
+- Adicionar obrigatoriedade de campos não presentes em `diagnostico`
+
+---
+
 ## 📋 Índice
 
 - [O que é `talhao_id`?](#o-que-é-talhao_id)
 - [Relação com Outras Tabelas](#relação-com-outras-tabelas)
 - [Onde é Usado](#onde-é-usado)
 - [Fluxo de Dados](#fluxo-de-dados)
-- [Estratégia de Fallback](#estratégia-de-fallback)
 - [Exemplos Práticos](#exemplos-práticos)
 
 ---
@@ -453,4 +493,4 @@ ORDER BY s.created_at DESC;
 
 ---
 
-**Última atualização**: 25-12-2025
+**Última atualização**: 28-12-2025
