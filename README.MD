@@ -28,7 +28,7 @@ Este repositório contém a **documentação técnica completa** da Camada 1 do 
 - ✅ O que **não** é responsabilidade da Camada 1
 
 **Versão**: V0 (MVP)  
-**Status**: ✅ Concluído, aguardando aceite da Camada 2
+**Status**: ✅ Concluído, aguardando aceite.
 
 ---
 
@@ -128,7 +128,7 @@ Todas as evidências técnicas estão organizadas em:
 
 As evidências estão **contextualizadas** nos documentos onde são relevantes:
 
-- **[Contrato de Dados](contrato_de_dados.md)**: Contém galeria completa de evidências (A-I) com prints do banco, interface, exports, etc.
+- **[Contrato de Dados](contrato_de_dados.md#-galeria-de-evidências)**: Contém galeria completa de evidências (A-I) com prints do banco, interface, exports, etc.
 - **[Loop Monitor](loop_monitor.md)**: Evidências de rastreabilidade completa de observações
 - **[Query Mãe](static/demo/)**: Evidências de execução e resultados da Golden Query
 
