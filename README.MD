@@ -1,21 +1,22 @@
-# 📋 Documentação — Camada 1 (V0)
+# Documentação — Camada 1 (V0)
 
 > **Sistema de Monitoramento de Campo**  
 > Sertan AI • Camada 1 → Camada 2
 
 ---
 
-## 📑 Índice
+## Índice
 
-- [🎯 Visão](#-visão)
-- [📜 Contratos](#-contratos)
-- [⚙️ Artefatos Executáveis](#️-artefatos-executáveis)
-- [📸 Evidências](#-evidências)
-- [✅ Checklist de Aceite (V0)](#-checklist-de-aceite-v0)
+- [Visão](#visão)
+- [Auditoria e Papel dos Repositórios](#auditoria-e-papel-dos-repositórios)
+- [Contratos](#contratos)
+- [Artefatos Executáveis](#artefatos-executáveis)
+- [Evidências](#evidências)
+- [Checklist de Aceite (V0)](#checklist-de-aceite-v0)
 
 ---
 
-## 🎯 Visão
+## Visão
 
 Este repositório contém a **documentação técnica completa** da Camada 1 do sistema de monitoramento de campo da Sertan AI.
 
@@ -31,7 +32,44 @@ Este repositório contém a **documentação técnica completa** da Camada 1 do 
 
 ---
 
-## 📜 Contratos
+## Auditoria e Papel dos Repositórios
+
+### Repositório Principal: [sertanai-app](https://github.com/Sertan-AI/sertanai-app)
+
+**Papel**: Aplicação principal onde o **Loop MVP ocorre de ponta a ponta**
+
+- ✅ **Fonte primária da verdade operacional** da Camada 1
+- ✅ Código-fonte completo do sistema de monitoramento
+- ✅ Pipeline de execução end-to-end
+
+**Documentação inclui**:
+- Visão Geral
+- Funcionalidades Principais
+- Arquitetura em Alto Nível
+- Requisitos para Execução Local
+- Configuração do Ambiente
+- Configuração do Banco de Dados
+- Executando o App Localmente
+- Estrutura de Pastas (resumo)
+- Demonstração Visual
+- Checklist Rápido de Problemas Comuns
+- Licença e Uso Interno
+
+**Foco**: Instruções para execução local, desenvolvimento e colaboração interna. Conceitos básicos operacionais.
+
+### Repositório de Documentação: [documentacao-ss-camada1](https://github.com/Sertan-AI/documentacao-ss-camada1)
+
+**Papel**: Documentação técnica completa do **Contrato de Dados** (este repositório)
+
+- ✅ **Fonte oficial dos contratos** entre Camada 1 e Camada 2
+- ✅ Especificações técnicas detalhadas
+- ✅ Evidências de aceite e validação
+
+**Foco**: Contratos, schemas, garantias técnicas, evidências e checklist de aceite do V0.
+
+---
+
+## Contratos
 
 ### Contrato Principal
 
@@ -54,7 +92,7 @@ Documento central que define todos os aspectos técnicos do contrato entre camad
 
 ---
 
-## ⚙️ Artefatos Executáveis
+## Artefatos Executáveis
 
 ### Query Mãe (Golden Query)
 
@@ -80,7 +118,7 @@ Documento central que define todos os aspectos técnicos do contrato entre camad
 
 ---
 
-## 📸 Evidências
+## Evidências
 
 ### Galeria de Evidências
 
@@ -111,7 +149,7 @@ As evidências estão **contextualizadas** nos documentos onde são relevantes:
 
 ---
 
-## ✅ Checklist de Aceite (V0)
+## Checklist de Aceite (V0)
 
 ### Contratos Formais
 
@@ -145,7 +183,7 @@ As evidências estão **contextualizadas** nos documentos onde são relevantes:
 
 ---
 
-## 🎯 Critério de Pronto
+## Critério de Pronto
 
 ✅ **Este checklist pode ser "carimbado" com um print para validação do V0.**
 
@@ -153,7 +191,7 @@ Todos os itens estão **verificados, documentados e evidenciados**.
 
 ---
 
-## 📌 Informações de Versionamento
+## Informações de Versionamento
 
 | Item | Valor |
 |------|-------|
@@ -166,13 +204,22 @@ Todos os itens estão **verificados, documentados e evidenciados**.
 
 ---
 
-## 🔗 Links Rápidos
+## Links Rápidos
 
-- 🌐 **Documentação Interativa**: [https://sertan-ai.github.io/documentacao-ss-camada1](https://sertan-ai.github.io/documentacao-ss-camada1)
+### Documentação e Contratos
+
+- 🌐 **Documentação Interativa do banco de dados**: [https://sertan-ai.github.io/documentacao-ss-camada1](https://sertan-ai.github.io/documentacao-ss-camada1)
 - 📄 **Contrato de Dados**: [contrato_de_dados.md](contrato_de_dados.md)
 - 🔄 **Loop MVP**: [loop_monitor.md](loop_monitor.md)
 - 🗺️ **Modelo de Dados**: [docs_monitoramento_relacionamento.md](docs_monitoramento_relacionamento.md)
 - 📊 **Query Mãe**: [query_sessao_completa_v0.sql](query_sessao_completa_v0.sql)
+
+### Mockups da Documentação Interativa
+
+| Página Inicial | Esquema Técnico Detalhado |
+|:--------------:|:-------------------------:|
+| <a href="static/demo/mockup_home.png" target="_blank"><img src="static/demo/mockup_home.png" alt="Página Inicial" style="width: 300px; height: auto;"></a> | <a href="static/demo/mockup_schema.png" target="_blank"><img src="static/demo/mockup_schema.png" alt="Esquema Técnico" style="width: 300px; height: auto;"></a> |
+| *Página inicial da documentação HTML* | *Visualização do esquema do banco de dados* |
 
 ---
 
