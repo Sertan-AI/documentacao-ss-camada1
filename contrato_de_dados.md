@@ -352,6 +352,54 @@ Dentro de uma mesma sessão, os registros seguem **ordenação temporal consiste
 
 ---
 
+## 🌾 Estágio da Cultura (Contrato Oficial)
+
+### Coluna Oficial: `monitor_sessao.estagio_id`
+
+> [!IMPORTANT]
+> **Definição Contratual do Estágio:**  
+> O estágio fenológico da cultura é registrado exclusivamente em `formulario.monitor_sessao.estagio_id` (FK para tabela `estagio_cultura`).
+
+### Regra de Validade
+
+O estágio só é considerado **válido e oficial** após:
+
+```sql
+monitor_sessao.status = 'concluida'
+```
+
+**Garantias:**
+- ✓ `estagio_id` é preenchido durante a sessão de monitoramento
+- ✓ `estagio_id` é informado manualmente pelo técnico em campo (não calculado)
+- ✓ `estagio_id` torna-se imutável e válido após conclusão da sessão
+
+> [!WARNING]
+> **Sessões em andamento (`status != 'concluida'`)** possuem `estagio_id` **não oficial** e **não devem ser considerados** pela Camada 2.
+
+### Campo `data_plantio` (Uso Futuro)
+
+O campo `formulario.diagnostico.data_plantio` está disponível no banco de dados, porém:
+
+| Campo | Uso no MVP (V0) | Uso Futuro |
+|-------|----------------|------------|
+| `data_plantio` | ❌ **Não utilizado para cálculos** | ✅ Cálculo de dias após plantio (DAP) para inferir estágio automaticamente |
+
+> [!NOTE]
+> **No MVP atual:**  
+> - `data_plantio` é armazenado apenas para **futuras aplicações**
+> - **Não é usado** para calcular dias após o plantio (DAP)
+> - **Não é usado** para predizer ou validar o estágio fenológico
+> - O estágio é **informado manualmente** via `monitor_sessao.estagio_id`
+
+> [!TIP]
+> **Em versões futuras (V1+):**  
+> `data_plantio` poderá ser utilizado para:
+> - Calcular automaticamente dias após o plantio (DAP)
+> - Validar ou sugerir o estágio fenológico esperado
+> - Criar alertas de inconsistência temporal
+
+---
+
 ## 📤 Formato de Entrega dos Dados
 
 **Formato principal (V0):**
